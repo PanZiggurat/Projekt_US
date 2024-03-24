@@ -25,6 +25,7 @@ CREATE TABLE rezerwacje (
     status_platnosci VARCHAR(20) CHECK (status_platnosci IN ('zaplacone','niezaplacone')),
     id_obiektu INT,
     id_uzytkownika INT,
+    rodzaj_aktywnosci varchar(30) CHECK (rodzaj_aktywnosci in ('piłka nożna','siatkówka','koszkówka','tenis','pływanie'))
     FOREIGN KEY (id_obiektu) REFERENCES obiekty(id_o),
     FOREIGN KEY (id_uzytkownika) REFERENCES uzytkownicy(id_u)
 );
