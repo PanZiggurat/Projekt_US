@@ -1,0 +1,61 @@
+{% extends 'basic.html' %}
+{% block head %} 
+<link rel="stylesheet" href="{{ url_for('static',filename='rejestracja.css')}}"/>
+{% endblock %}
+{% block body %}
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message[1] }}">{{ message[0] }}</div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+<h1>Zarejestruj się!</h1>
+<div class="rejstracja">
+    <form  action="/register" method="POST" onsubmit="return validateForm()">
+        <label for="imie">Podaj imię</label>
+        <input id="imie" name="imie" type="text" required />
+        <label for="nazwisko">Podaj nazwisko</label>
+        <input id="nazwisko" name="nazwisko" type="text" required />
+        <label for="email">Podaj email</label>
+        <input id="email" name="email" type="email" required />
+        <label for="haslo">Podaj hasło</label>
+        <input id="haslo" name="haslo" type="password" required />
+        <label for="rhaslo">Powtórz hasło</label>
+        <input id="rhaslo" name="rhaslo" type="password" required />
+        <input type="submit" value="Zarejestruj">
+    </form>
+    
+</div>
+<script>
+    function validateForm() {
+        var imie = document.getElementById("imie").value;
+        var nazwisko = document.getElementById("nazwisko").value;
+        var email = document.getElementById("email").value;
+        var haslo = document.getElementById("haslo").value;
+        var rhaslo = document.getElementById("rhaslo").value;
+
+        if (!imie || !nazwisko || !email || !haslo || !rhaslo) {
+            alert("Proszę wypełnić wszystkie pola.");
+            return false;
+        }
+
+        if (email.indexOf("@") == -1 || email.indexOf(".") == -1) {
+            alert("Proszę podać poprawny adres email.");
+            return false;
+        }
+
+        if (haslo !== rhaslo) {
+            alert("Hasło i jego powtórzenie nie są takie same.");
+            return false;
+        }
+
+        if (haslo.length < 8) {
+            alert("Hasło musi zawierać co najmniej 8 znaków.");
+            return false;
+        }
+
+        return true;
+    }
+</script>
+{% endblock %}

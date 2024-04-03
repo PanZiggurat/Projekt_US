@@ -1,0 +1,83 @@
+header {
+    width: 100%;
+    height: 60px;
+    background-color: #a9fa87;
+    display: flex;
+   
+    border: 1px solid black;
+    margin: 0;
+    padding: 0;
+  }
+  img{
+    height: 50px;
+    padding: 10px;
+    
+  }
+  .part1{
+    display: flex;
+    align-items: center;
+  }
+  .part2{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-family: 'PT Serif', serif;
+  }
+  .part3{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-family: 'PT Serif', serif;
+  }
+  .part4{
+    display: flex;
+    
+    align-items: center;
+    justify-content: right;
+    text-align: center;
+    font-size: 10px;
+  }
+  .part1, .part2, .part3, .part4{
+    flex-grow: 1;
+  }
+  a{
+    text-decoration: none;
+    color:white;
+  }
+  .part2 a:hover,
+  .part3 a:hover {
+      color: #e2e8dc;
+  }
+  .part4 a:hover{
+    color:#bcd69c ;
+  }
+  .links {
+    display: flex;
+    flex-direction: column; 
+    margin-right: 20px;
+}
+.main{
+  width: 100%;
+  height: 100%;
+  background-color: #d5f2e4;
+  padding: 0;
+  margin: 0;
+  justify-content: center;
+  text-align: center;
+  align-items: center;
+}
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 1px solid black;
+}
+h1{
+  padding: 50px;
+  margin: 0;
+  color: White;
+  font-family: 'PT Serif', serif;
+  font-size: 40px;
+}
