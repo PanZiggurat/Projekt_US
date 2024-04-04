@@ -1,6 +1,6 @@
-from flask import Flask, render_template,url_for,redirect, flash, request
+from flask import Flask, render_template,url_for,redirect, flash, request,session
 from  flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash,check_password_hash
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']='mysql://root@localhost/aplikacja'
@@ -29,9 +29,9 @@ class Uzytkownik(db.Model):
     
 
 def index():
-    obiekty = Obiekt.query.all()
+    
    
-    return render_template('index.html', obiekty=obiekty)
+    return render_template('index.html')
 
 @app.route('/register',methods=['POST','GET'])
 def register():
@@ -54,9 +54,10 @@ def register():
         
         # Sprawdzenie czy email już istnieje w bazie danych
         if Uzytkownik.query.filter_by(email=email).first():
-            flash('Ten email jest już zajęty.', 'danger')
-            print('emial zajety ')
-            return redirect(url_for('register'))
+            flash('Ten adres email jest już zajęty.', 'danger')
+            return redirect(url_for('register', email_taken=True))
+           
+           
 
         # Sprawdzenie czy hasło i jego powtórzenie są takie same
         if haslo != rhaslo:
@@ -79,7 +80,27 @@ def register():
         flash('Pomyślnie zarejestrowano użytkownika.', 'success')
         return redirect(url_for('index'))
     else:
-        return render_template('register.html')
+        email_taken = request.args.get('email_taken', False)
+        if email_taken:
+            flash('Ten adres email jest już zajęty.', 'danger')
+            return render_template('register.html', email_taken=email_taken)
+        else:
+            
+            return render_template('register.html')
+
+@app.route('/login',methods=['POST','GET']) 
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['haslo']
+        user = Uzytkownik.query.filter_by(email=email).first()
+        if user and check_password_hash(user.haslo, password):
+            session['zalogowany'] = True 
+            return render_template('indexZ.html')
+        else:
+            flash('Logowanie się nie powiodło. Sprawdź email i hasło.', 'danger')
+            return render_template('login.html')
+    return render_template('login.html')
 
 if __name__ == "__main__":
     app.run(debug=True)

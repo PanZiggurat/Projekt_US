@@ -10,9 +10,12 @@
         {% endfor %}
     {% endif %}
 {% endwith %}
+{% if email_taken %}
+    <div class="alert alert-danger">Ten adres email jest już zajęty.</div>
+{% endif %}
 <h1>Zarejestruj się!</h1>
 <div class="rejstracja">
-    <form  action="/register" method="POST" onsubmit="return validateForm()">
+    <form id="register-form" action="/register" method="POST" onsubmit="return validateForm()">
         <label for="imie">Podaj imię</label>
         <input id="imie" name="imie" type="text" required />
         <label for="nazwisko">Podaj nazwisko</label>
@@ -25,9 +28,9 @@
         <input id="rhaslo" name="rhaslo" type="password" required />
         <input type="submit" value="Zarejestruj">
     </form>
-    
 </div>
 <script>
+   
     function validateForm() {
         var imie = document.getElementById("imie").value;
         var nazwisko = document.getElementById("nazwisko").value;

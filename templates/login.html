@@ -1,0 +1,27 @@
+{% extends 'basic.html' %}
+{% block head %} 
+<link rel="stylesheet" href="{{ url_for('static',filename='rejestracja.css')}}"/>
+{% endblock %}
+{% block body %}
+{% with messages = get_flashed_messages() %}
+{% if invalid_login %}
+    <div class="alert alert-danger">Logowanie się nie powiodło. Sprawdź email i hasło.</div>
+{% endif %}
+{% endwith %}
+{% if email_taken %}
+    <div class="alert alert-danger">Ten adres email jest już zajęty.</div>
+{% endif %}
+<h1>Zaloguj się!</h1>
+<div class="rejstracja">
+    <form id="login-form" action="/login" method="POST" >
+        <label for="email">Podaj email</label>
+        <input id="email" name="email" type="text" required />
+        
+        <label for="haslo">Podaj hasło</label>
+        <input id="haslo" name="haslo" type="password" required />
+
+        <input type="submit" value="Zaloguj">
+    </form>
+</div>
+
+{% endblock %}
