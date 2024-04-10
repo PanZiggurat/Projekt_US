@@ -1,6 +1,6 @@
 {% extends 'basic.html' %}
 {% block head %} 
-<link rel="stylesheet" href="{{ url_for('static',filename='style.css')}}"/>
+<link rel="stylesheet" href="{{ url_for('static',filename='details.css')}}"/>
 {% endblock %}
 {% block body %}
 
@@ -13,14 +13,14 @@
             <img src="{{ url_for('static',filename='obrazy/prof.png')}}" alt="Obrazek">
         </div>
         <div class="links">
-            <a href="{{ url_for('wyloguj') }}">Wyloguj</a>
-            
+            <a href="{{ url_for('login') }}">Zaloguj</a>
+            <a href="{{ url_for('register') }}">Zarejestruj</a>
         </div>
 
     </div>
 </header>
 <div class="main">
-    <h1>Witaj w naszej aplikacji!<br>Zarezerwuj termin juz dziś!</h1>
+    
 </div>
 
 {% endblock %}

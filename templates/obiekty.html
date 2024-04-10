@@ -1,0 +1,50 @@
+{% extends 'basic.html' %}
+{% block head %} 
+<link rel="stylesheet" href="{{ url_for('static',filename='obiekty.css')}}"/>
+{% endblock %}
+{% block body %}
+<header>
+    <div class="part1"><img src="{{ url_for('static',filename='obrazy/asdw.png')}}"/></div>
+    <div class="part2"><a href="">Obiekty</a></div>
+    <div class="part3"><a href="">Moje Rezerwacje</a></div>
+    <div class="part4">
+        <div class="image-container">
+            <img src="{{ url_for('static',filename='obrazy/prof.png')}}" alt="Obrazek">
+        </div>
+        <div class="links">
+            <a href="{{ url_for('login') }}">Zaloguj</a>
+            <a href="{{ url_for('register') }}">Zarejestruj</a>
+        </div>
+
+    </div>
+</header>
+
+{% set selected_type = request.form.get('typ_obiektu') %}
+<form action="{{ url_for('obiekty') }}" method="POST">
+    <label for="typ_obiektu">Wybierz typ obiektu:</label>
+    <select name="typ_obiektu" id="typ_obiektu">
+        <option value="dowolny">Dowolny typ obiektu</option>
+        <option value="Orlik">Orilk</option>
+        <option value="Hala sportowa">Hala sportowa</option>
+        <option value="Basen">Basen</option>
+        <option value="Kort tenisowy">Kort tenisowy</option>
+    </select>
+    <button type="submit">Filtruj</button>
+</form>
+
+<div class="main">
+    {% for obiekt in obiekty %}
+        {% if not selected_type or selected_type == 'dowolny' or obiekt.typ_obiektu == selected_type %}
+            <a href="{{ url_for('obiekt_details', id=obiekt.id_o) }}" class="object">
+                <img src="{{ url_for('static', filename='obrazy/' + obiekt.nazwa + '.jpg') }}" alt="{{ obiekt.nazwa }}">
+                <div class="details">
+                    <p>Nazwa: {{ obiekt.nazwa }}</p>
+                    <p>Lokalizacja: {{ obiekt.lokalizacja }}</p>
+                    <p>Typ: {{ obiekt.typ_obiektu }}</p>
+                </div>
+            </a>
+        {% endif %}
+    {% endfor %}
+</div>
+
+{% endblock %}

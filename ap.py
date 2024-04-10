@@ -3,7 +3,7 @@ from  flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash,check_password_hash
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI']='mysql://root@localhost/aplikacja'
+app.config['SQLALCHEMY_DATABASE_URI']='mysql://root@localhost/apka'
 app.config['SECRET_KEY'] = 'secret_key'
 db = SQLAlchemy(app)
 
@@ -95,12 +95,34 @@ def login():
         password = request.form['haslo']
         user = Uzytkownik.query.filter_by(email=email).first()
         if user and check_password_hash(user.haslo, password):
-            session['zalogowany'] = True 
-            return render_template('indexZ.html')
+            session['user_id'] = user.id_u 
+            session['zalogowany'] = True  
+            return render_template('indexZ.html')  
         else:
             flash('Logowanie się nie powiodło. Sprawdź email i hasło.', 'danger')
             return render_template('login.html')
     return render_template('login.html')
+
+@app.route('/obiekty', methods=['POST', 'GET'])
+def obiekty():
+    if request.method == 'POST':
+        typ_obiektu = request.form['typ_obiektu']
+        if typ_obiektu == 'dowolny':
+            obiekty = Obiekt.query.all()
+        else:
+            obiekty = Obiekt.query.filter_by(typ_obiektu=typ_obiektu).all()
+    else:
+        obiekty = Obiekt.query.all()
+        
+    if 'user_id' in session:  
+        return render_template('obiektyZ.html', obiekty=obiekty)
+    else:
+        return render_template('obiekty.html', obiekty=obiekty)
+@app.route('/wyloguj')   
+def wyloguj():
+    session.clear()  
+    return redirect(url_for('index'))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
