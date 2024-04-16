@@ -16,6 +16,7 @@ class Obiekt(db.Model):
     cena_1 = db.Column(db.Float)
     cena_2 = db.Column(db.Float)
     mozliwosc_zaplaty = db.Column(db.String(25))
+    link = db.Column(db.String(510))
 
 class Uzytkownik(db.Model):
     __tablename__ = 'uzytkownicy'
@@ -24,6 +25,19 @@ class Uzytkownik(db.Model):
     nazwisko = db.Column(db.String(50))
     email = db.Column(db.String(50), unique=True)
     haslo = db.Column(db.String(255))
+
+class Rezerwacja(db.Model):
+    __tablename__ = 'rezerwacje'
+    id_r = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.Date)
+    godzina_p = db.Column(db.Time)
+    godzina_z = db.Column(db.Time)
+    platnosc = db.Column(db.String(25))
+    status_platnosci = db.Column(db.String(20))
+    id_obiektu = db.Column(db.Integer, db.ForeignKey('obiekty.id_o'))
+    id_uzytkownika = db.Column(db.Integer, db.ForeignKey('uzytkownicy.id_u'))
+    rodzaj_aktywnosci = db.Column(db.String(30))
+
 
 @app.route('/',methods=['POST','GET'])
     
@@ -118,10 +132,23 @@ def obiekty():
         return render_template('obiektyZ.html', obiekty=obiekty)
     else:
         return render_template('obiekty.html', obiekty=obiekty)
+    
 @app.route('/wyloguj')   
 def wyloguj():
     session.clear()  
     return redirect(url_for('index'))
+
+@app.route('/obiekty/<int:id>', methods=['GET'])
+def obiekt_details(id):
+    obiekt = Obiekt.query.get(id)
+    if obiekt:
+        if 'user_id' in session:
+            return render_template('obiekt_detailsZ.html', obiekt=obiekt)
+        else:
+            return render_template('obiekt_details.html', obiekt=obiekt)
+    else:
+        flash('Nie znaleziono obiektu o podanym identyfikatorze.', 'danger')
+        return redirect(url_for('index'))
 
 
 if __name__ == "__main__":
