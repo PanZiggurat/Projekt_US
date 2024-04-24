@@ -1,6 +1,7 @@
 from flask import Flask, render_template,url_for,redirect, flash, request,session
 from  flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash,check_password_hash
+from datetime import timedelta,datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI']='mysql://root@localhost/apka'
@@ -138,18 +139,36 @@ def wyloguj():
     session.clear()  
     return redirect(url_for('index'))
 
-@app.route('/obiekty/<int:id>', methods=['GET'])
+
+def get_next_7_days():
+    dates = []
+    today = datetime.now().date()
+    for i in range(7):
+        date = today + timedelta(days=i)
+        dates.append(date)
+    return dates
+
+
+def get_reservations_for_day(date):
+    reservations = Rezerwacja.query.filter_by(data=date).all()
+    return reservations
+
+
+@app.route('/obiekt_details/<int:id>', methods=['GET'])
 def obiekt_details(id):
     obiekt = Obiekt.query.get(id)
     if obiekt:
         if 'user_id' in session:
-            return render_template('obiekt_detailsZ.html', obiekt=obiekt)
+            next_7_days = get_next_7_days()
+            reservations = {date: get_reservations_for_day(date) for date in next_7_days}
+            return render_template('obiekt_detailsZ.html', obiekt=obiekt, reservations=reservations)
         else:
-            return render_template('obiekt_details.html', obiekt=obiekt)
+            next_7_days = get_next_7_days()
+            reservations = {date: get_reservations_for_day(date) for date in next_7_days}
+            return render_template('obiekt_details.html', obiekt=obiekt, reservations=reservations)
     else:
         flash('Nie znaleziono obiektu o podanym identyfikatorze.', 'danger')
         return redirect(url_for('index'))
-
 
 if __name__ == "__main__":
     app.run(debug=True)
