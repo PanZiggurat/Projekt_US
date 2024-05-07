@@ -3,7 +3,6 @@
 <link rel="stylesheet" href="{{ url_for('static',filename='details.css')}}"/>
 {% endblock %}
 {% block body %}
-
 <header>
     <div class="part1"><img src="{{ url_for('static',filename='obrazy/asdw.png')}}"/></div>
     <div class="part2"><a href="{{ url_for('obiekty') }}">Obiekty</a></div>
@@ -13,8 +12,7 @@
             <img src="{{ url_for('static',filename='obrazy/prof.png')}}" alt="Obrazek">
         </div>
         <div class="links">
-            <a href="{{ url_for('login') }}">Zaloguj</a>
-            <a href="{{ url_for('register') }}">Zarejestruj</a>
+            <a href="{{ url_for('wyloguj') }}">Wyloguj</a>
         </div>
 
     </div>
@@ -74,7 +72,8 @@
             </table>
         </div>
         <div class="reservation-button">
-            <form action="{{ url_for('rezerwacja') }}" method="GET">
+            <form action="{{ url_for('rezerwacja', id=obiekt.id_o) }}" method="GET">
+                <input type="hidden" name="obiekt_id" value="{{ obiekt.id_o }}">
                 <button type="submit">Zarezerwuj termin</button>
             </form>
         </div>

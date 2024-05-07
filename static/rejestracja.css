@@ -52,3 +52,6 @@ body {
 html {
     height: 100%; /* Ustaw wysokość html na 100% */
 }
+.button-container form button {
+    margin-top: 10px; /* Dodaj odstęp między przyciskami */
+}

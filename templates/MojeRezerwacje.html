@@ -1,0 +1,63 @@
+{% extends 'basic.html' %}
+{% block head %} 
+<link rel="stylesheet" href="{{ url_for('static',filename='Mrezerwacja.css')}}"/>
+{% endblock %}
+{% block body %}
+
+<header>
+    <div class="part1"><img src="{{ url_for('static',filename='obrazy/asdw.png')}}"/></div>
+    <div class="part2"><a href="{{ url_for('obiekty') }}">Obiekty</a></div>
+    <div class="part3"><a href="{{ url_for('moje_rezerwacje') }}">Moje Rezerwacje</a></div>
+    <div class="part4">
+        <div class="image-container">
+            <img src="{{ url_for('static',filename='obrazy/prof.png')}}" alt="Obrazek">
+        </div>
+        <div class="links">
+            <a href="{{ url_for('wyloguj') }}">Wyloguj</a>
+        </div>
+    </div>
+</header>
+
+<div class="main">
+    <div class="user-info">
+        <div class="info">
+            <p>Imię: {{ session.user_info.imie }}</p>
+            <p>Nazwisko: {{ session.user_info.nazwisko }}</p>
+            <p>Email: {{ session.user_info.email }}</p>
+        </div>
+    </div>
+    <div class="rezerwacje">
+        <h2>Moje Rezerwacje</h2>
+        {% if rezerwacje %}
+            <div class="rezerwacje-container">
+                {% for reservation in rezerwacje %}
+                <div class="rezerwacja">
+                    <p>Data: {{ reservation.data }}</p>
+                    <p>Godzina rozpoczęcia: {{ reservation.godzina_p }}</p>
+                    <p>Godzina zakończenia: {{ reservation.godzina_z }}</p>
+                    <p>Rodzaj aktywności: {{ reservation.rodzaj_aktywnosci }}</p>
+                    <p>Status płatności: {{ reservation.status_platnosci }}</p>
+                    <p>Typ płatności: {{ reservation.platnosc }}</p>
+                    {% if reservation.status_platnosci == 'niezaplacone' %}
+                        {% set obiekt = obiekty[reservation.id_obiektu - 1] %}
+                        {% if reservation.godzina_z.hour - reservation.godzina_p.hour == 1 %}
+                            {% set cena = obiekt.cena_1 %}
+                        {% else %}
+                            {% set cena = obiekt.cena_2 %}
+                        {% endif %}
+                        <p>Cena: {{ cena }}</p>
+                    {% endif %}
+                    {% if reservation.status_platnosci == 'niezaplacone' and reservation.platnosc == 'Zdalnie' %}
+                        <form action="{{ url_for('payment', reservation_id=reservation.id_r) }}" method="post">
+                            <button type="submit">Zapłać</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p>Brak rezerwacji</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

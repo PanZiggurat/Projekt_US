@@ -1,5 +1,6 @@
-from flask import Flask, render_template,url_for,redirect, flash, request,session
+from flask import Flask, render_template,url_for,redirect, flash, request,session,jsonify
 from  flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import and_,or_
 from werkzeug.security import generate_password_hash,check_password_hash
 from datetime import timedelta,datetime
 
@@ -39,6 +40,8 @@ class Rezerwacja(db.Model):
     id_uzytkownika = db.Column(db.Integer, db.ForeignKey('uzytkownicy.id_u'))
     rodzaj_aktywnosci = db.Column(db.String(30))
 
+    obiekt = db.relationship('Obiekt', backref='rezerwacje')
+
 
 @app.route('/',methods=['POST','GET'])
     
@@ -68,7 +71,7 @@ def register():
             return redirect(url_for('register'))
         
         # Sprawdzenie czy email już istnieje w bazie danych
-        if Uzytkownik.query.filter_by(email=email).first():
+        if Uzytkownik.query.filter_by(email=email).first() is not None:
             flash('Ten adres email jest już zajęty.', 'danger')
             return redirect(url_for('register', email_taken=True))
            
@@ -103,8 +106,10 @@ def register():
             
             return render_template('register.html')
 
-@app.route('/login',methods=['POST','GET']) 
+@app.route('/login', methods=['POST', 'GET']) 
 def login():
+    invalid_login = False  # Ustawienie początkowej wartości na False
+
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['haslo']
@@ -114,9 +119,11 @@ def login():
             session['zalogowany'] = True  
             return render_template('indexZ.html')  
         else:
+            invalid_login = True  # Ustawienie na True w przypadku nieudanego logowania
             flash('Logowanie się nie powiodło. Sprawdź email i hasło.', 'danger')
-            return render_template('login.html')
-    return render_template('login.html')
+            return render_template('login.html', invalid_login=invalid_login)  # Przekazanie invalid_login do szablonu
+
+    return render_template('login.html', invalid_login=invalid_login)
 
 @app.route('/obiekty', methods=['POST', 'GET'])
 def obiekty():
@@ -139,6 +146,12 @@ def wyloguj():
     session.clear()  
     return redirect(url_for('index'))
 
+@app.route('/index')
+def index_page():
+    if 'user_id' in session:  
+        return redirect(url_for('indexZ'))
+    else:
+        return redirect(url_for('index'))
 
 def get_next_7_days():
     dates = []
@@ -149,27 +162,186 @@ def get_next_7_days():
     return dates
 
 
-def get_reservations_for_day(date):
-    reservations = Rezerwacja.query.filter_by(data=date).all()
+def get_reservations_for_day(date, obiekt_id):
+    reservations = Rezerwacja.query.filter_by(data=date, id_obiektu=obiekt_id).order_by(Rezerwacja.godzina_p).all()
     return reservations
 
+def get_reservations_for_week(week_offset, obiekt_id):
+    today = datetime.now().date()
+    start_date = today + timedelta(weeks=week_offset)
+    end_date = start_date + timedelta(days=6)
+
+    reservations = {}
+    for i in range(7):
+        date = start_date + timedelta(days=i)
+        reservations[date] = get_reservations_for_day(date, obiekt_id)
+    return reservations
 
 @app.route('/obiekt_details/<int:id>', methods=['GET'])
 def obiekt_details(id):
     obiekt = Obiekt.query.get(id)
     if obiekt:
+        week_offset = request.args.get('week_offset', default=0, type=int)  
+        reservations = get_reservations_for_week(week_offset, obiekt.id_o)
+        
+      
+        session['obiekt_id'] = id
+        
         if 'user_id' in session:
-            next_7_days = get_next_7_days()
-            reservations = {date: get_reservations_for_day(date) for date in next_7_days}
-            return render_template('obiekt_detailsZ.html', obiekt=obiekt, reservations=reservations)
+            return render_template('obiekt_detailsZ.html', obiekt=obiekt, reservations=reservations, week_offset=week_offset)
         else:
-            next_7_days = get_next_7_days()
-            reservations = {date: get_reservations_for_day(date) for date in next_7_days}
-            return render_template('obiekt_details.html', obiekt=obiekt, reservations=reservations)
+            return render_template('obiekt_details.html', obiekt=obiekt, reservations=reservations, week_offset=week_offset)
     else:
         flash('Nie znaleziono obiektu o podanym identyfikatorze.', 'danger')
         return redirect(url_for('index'))
+    
+@app.template_global()
+def get_current_datetime():
+    return datetime.now()
+
+@app.template_global()
+def get_timedelta(days):
+    return timedelta(days=days)
+
+def get_reserved_hours(date):
+    reservations = Rezerwacja.query.filter_by(data=date).all()
+    reserved_hours = [reservation.godzina_p for reservation in reservations]
+    return reserved_hours
+
+
+@app.route('/rezerwacja', methods=['GET'])
+def rezerwacja():
+    if 'user_id' not in session:
+        flash('Musisz być zalogowany, aby zarezerwować termin.', 'warning')
+        return redirect(url_for('login'))
+    else:
+        obiekt_id = session.get('obiekt_id')  # Pobierz obiekt_id z sesji
+        obiekt = Obiekt.query.get(obiekt_id)
+
+        if obiekt:
+            if request.method == 'GET':
+                selected_date = request.args.get('data')
+                if selected_date:
+                    available_hours = list(range(10, 23))
+                else:
+                    available_hours = list(range(10, 23))
+
+                return render_template('rezerwacja.html', obiekt=obiekt, available_hours=available_hours, obiekt_id=obiekt_id)  # Przekazujesz obiekt_id do szablonu
+            else:
+                return render_template('rezerwacja.html', obiekt=obiekt, obiekt_id=obiekt_id)  # Przekazujesz obiekt_id do szablonu
+        else:
+            flash('Nie znaleziono obiektu o podanym identyfikatorze.', 'danger')
+            return redirect(url_for('index'))
+        
+@app.route('/make_reservation', methods=['POST'])
+def make_reservation():
+    if request.method == 'POST':
+        obiekt_id = session.get('obiekt_id')  
+        uzytkownik_id = session['user_id']
+        data = request.form['data']
+        godzina_p = request.form['godzina_p'] + ":00"
+        dlugosc = int(request.form['dlugosc'])
+        platnosc = request.form['platnosc'].replace('_', ' ').title()
+        rodzaj_aktywnosci = request.form['rodzaj_aktywnosci']
+        
+        godzina_p_datetime = datetime.strptime(godzina_p, '%H:%M')
+        godzina_z_datetime = godzina_p_datetime + timedelta(hours=dlugosc)
+        godzina_z = godzina_z_datetime.strftime('%H:%M')
+
+        overlapping_reservation = Rezerwacja.query.filter(
+            and_(
+                Rezerwacja.data == data,
+                Rezerwacja.id_obiektu == obiekt_id,
+                or_(
+                    and_(
+                        Rezerwacja.godzina_p < godzina_z,
+                        Rezerwacja.godzina_z > godzina_p
+                    )
+                )
+            )
+        ).first()
+
+        if overlapping_reservation:
+            flash('Wybrana godzina jest już zarezerwowana.', 'danger')
+            obiekt = Obiekt.query.get(obiekt_id)  # Pobierz obiekt na podstawie obiekt_id
+            available_hours = list(range(10, 23))
+            return render_template('rezerwacja.html', obiekt=obiekt, available_hours=available_hours)
+
+
+        status_platnosci = 'niezaplacone'
+        
+        nowa_rezerwacja = Rezerwacja(
+            data=data,
+            godzina_p=godzina_p,
+            godzina_z=godzina_z,
+            platnosc=platnosc,
+            status_platnosci=status_platnosci,
+            id_obiektu=obiekt_id,
+            id_uzytkownika=uzytkownik_id,
+            rodzaj_aktywnosci=rodzaj_aktywnosci
+        )
+        db.session.add(nowa_rezerwacja)
+        db.session.commit()
+        
+       
+        return redirect(url_for('index'))
+
+
+def remove_expired_reservations():
+    today = datetime.now().date()
+    expired_reservations = Rezerwacja.query.filter(Rezerwacja.data < today).all()
+    for reservation in expired_reservations:
+        db.session.delete(reservation)
+    db.session.commit()
+
+
+@app.route('/moje_rezerwacje')
+def moje_rezerwacje():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    else:
+        user_id = session['user_id']
+        user_info = Uzytkownik.query.filter_by(id_u=user_id).first()
+        rezerwacje = Rezerwacja.query.filter_by(id_uzytkownika=user_id).all()
+        obiekty = Obiekt.query.all()  # Dodaj to
+
+        if user_info:
+            session['user_info'] = {'imie': user_info.imie, 'nazwisko': user_info.nazwisko, 'email': user_info.email}
+
+        # Przekazujemy reservation nawet jeśli lista jest pusta
+        return render_template('MojeRezerwacje.html', rezerwacje=rezerwacje, obiekty=obiekty, reservation=None)  
+
+
+@app.route('/payment/<int:reservation_id>', methods=['POST', 'GET'])
+def payment(reservation_id):
+    reservation = Rezerwacja.query.get(reservation_id)
+    cena = None
+    if reservation:
+        obiekt = reservation.obiekt  # Pobranie obiektu powiązanego z rezerwacją
+        if obiekt:
+            cena = obiekt.cena_1 if reservation.godzina_z.hour - reservation.godzina_p.hour == 1 else obiekt.cena_2
+    return render_template('payment.html', cena=cena, reservation=reservation)
+
+@app.route('/payment_confirm', methods=['POST'])
+def payment_confirm():
+    if request.method == 'POST':
+        print(request.form)  # Print danych przesłanych z formularza
+        reservation_id = request.form['reservation_id']
+        numer_konta = request.form['numer_konta']
+
+        reservation = Rezerwacja.query.get(reservation_id)
+        if reservation:
+            reservation.status_platnosci = 'zaplacone'
+            db.session.commit()
+            flash('Płatność została przetworzona pomyślnie.', 'success')
+            return redirect(url_for('moje_rezerwacje'))
+        else:
+            flash('Błąd: Nie można znaleźć rezerwacji.', 'danger')
+            return redirect(url_for('index'))
+
+    return redirect(url_for('index'))
+
 
 if __name__ == "__main__":
     app.run(debug=True)
-
+    remove_expired_reservations()

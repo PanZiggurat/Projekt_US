@@ -22,6 +22,14 @@
 
         <input type="submit" value="Zaloguj">
     </form>
+    <div class="button-container">
+        <form action="{{ url_for('register') }}" method="GET">
+            <button type="submit">Zarejestruj się</button>
+        </form>
+        <form action="{{ url_for('index') }}" method="GET">
+            <button type="submit">Powrót</button>
+        </form>
+    </div>
 </div>
 
 {% endblock %}

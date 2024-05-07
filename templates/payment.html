@@ -1,0 +1,24 @@
+{% extends 'basic.html' %}
+{% block body %}
+<div class="main" style="text-align: center; background-color: #f0f8ff; padding: 20px;">
+    <h2>Informacje o rezerwacji</h2>
+    {% if reservation %}
+    <p>Data: {{ reservation.data }}</p>
+    <p>Godzina rozpoczęcia: {{ reservation.godzina_p }}</p>
+    <p>Godzina zakończenia: {{ reservation.godzina_z }}</p>
+    <p>Rodzaj aktywności: {{ reservation.rodzaj_aktywnosci }}</p>
+    <p>Status płatności: {{ reservation.status_platnosci }}</p>
+    <p>Typ płatności: {{ reservation.platnosc }}</p>
+    {% if reservation.status_platnosci == 'niezaplacone' %}
+    <p>Cena: {{ cena }}</p>
+    <form action="{{ url_for('payment_confirm') }}" method="post">
+        <input type="hidden" name="reservation_id" value="{{ reservation.id_r }}">
+        <input type="text" name="numer_konta" placeholder="Numer konta">
+        <button type="submit">Potwierdź płatność</button>
+    </form>
+    {% endif %}
+    {% else %}
+    <p>Brak informacji o tej rezerwacji.</p>
+    {% endif %}
+</div>
+{% endblock %}

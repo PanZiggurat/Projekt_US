@@ -61,6 +61,7 @@ a{
 
 .main {
 display: flex;
+background-color: #d5f2e4; 
 
 }
 
@@ -114,4 +115,15 @@ margin-top: 20px;
 }
 .reservations {
 position: relative; /* Nowy dodany styl */
+}
+.week-selector {
+  margin-bottom: 20px; 
+}
+
+.week-selector select {
+  margin-right: 10px; 
+}
+
+.week-selector button {
+  margin-top: 10px; 
 }

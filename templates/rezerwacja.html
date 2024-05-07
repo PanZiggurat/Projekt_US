@@ -1,0 +1,89 @@
+{% extends 'basic.html' %}
+{% block head %} 
+<link rel="stylesheet" href="{{ url_for('static',filename='rezerwacja.css')}}"/>
+{% endblock %}
+{% block body %}
+
+<header>
+    <div class="part1"><img src="{{ url_for('static',filename='obrazy/asdw.png')}}"/></div>
+    <div class="part2"><a href="{{ url_for('obiekty') }}">Obiekty</a></div>
+    <div class="part3"><a href="{{ url_for('moje_rezerwacje') }}">Moje Rezerwacje</a></div>
+    <div class="part4">
+        <div class="image-container">
+            <img src="{{ url_for('static',filename='obrazy/prof.png')}}" alt="Obrazek">
+        </div>
+        <div class="links">
+            <a href="{{ url_for('wyloguj') }}">Wyloguj</a>
+        </div>
+    </div>
+</header>
+<div id="error-message-container">
+    {% if get_flashed_messages(with_categories=true) %}
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div id="error-message" class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+</div>
+<h1>Formularz rezerwacji</h1>
+<div class="rezerwacja">
+    <form id="rezerwacja-form" action="{{ url_for('make_reservation', obiekt_id=obiekt.id) }}" method="POST" onsubmit="return checkReservation('{{ obiekt_id }}')">
+
+        <input type="hidden" name="obiekt_id" value="{{ obiekt_id }}">
+        <div class="form-group">
+            <label for="data">Wybierz datę:</label>
+            <input type="date" id="data" name="data" min="{{ (get_current_datetime() + get_timedelta(1)).strftime('%Y-%m-%d') }}" max="{{ (get_current_datetime() + get_timedelta(30)).strftime('%Y-%m-%d') }}" required>
+        </div>
+        <div class="form-group">
+            <label for="godzina_p">Wybierz godzinę rozpoczęcia:</label>
+            <select id="godzina_p" name="godzina_p" required>
+                {% for hour in available_hours %}
+                    <option value="{{ hour }}">{{ hour }}:00</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="dlugosc">Wybierz długość rezerwacji:</label>
+            <select id="dlugosc" name="dlugosc" required>
+                <option value="1">1 godzina</option>
+                <option value="2">2 godziny</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="platnosc">Wybierz metodę płatności:</label>
+            <select id="platnosc" name="platnosc" required>
+                {% if obiekt.mozliwosc_zaplaty == 'dowolnie' %}
+                    <option value="zdalnie">Zdalnie</option>
+                    <option value="na_miejscu">Na miejscu</option>
+                {% else %}
+                    <option value="na_miejscu">Na miejscu</option>
+                {% endif %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="rodzaj_aktywnosci">Wybierz rodzaj aktywności:</label>
+            <select id="rodzaj_aktywnosci" name="rodzaj_aktywnosci" required>
+                {% if obiekt.typ_obiektu == 'Orlik' %}
+                    <option value="Piłka nożna">Piłka nożna</option>
+                {% elif obiekt.typ_obiektu == 'Hala sportowa' %}
+                    <option value="Piłka nożna">Piłka nożna</option>
+                    <option value="Siatkówka">Siatkówka</option>
+                    <option value="Koszykówka">Koszykówka</option>
+                {% elif obiekt.typ_obiektu == 'Basen' %}
+                    <option value="Pływanie">Pływanie</option>
+                {% elif obiekt.typ_obiektu == 'Kort tenisowy' %}
+                    <option value="Tenis">Tenis</option>
+                {% endif %}
+            </select>
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Zarezerwuj">
+        </div>
+    </form>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+
+</script>
+
+
+{% endblock %}

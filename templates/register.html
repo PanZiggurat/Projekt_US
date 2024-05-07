@@ -28,7 +28,11 @@
         <input id="rhaslo" name="rhaslo" type="password" required />
         <input type="submit" value="Zarejestruj">
     </form>
+    <form action="{{ url_for('index') }}" method="GET">
+        <button type="submit">Powrót</button>
+    </form>
 </div>
+
 <script>
    
     function validateForm() {
