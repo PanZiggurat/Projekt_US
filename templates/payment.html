@@ -13,7 +13,7 @@
     <p>Cena: {{ cena }}</p>
     <form action="{{ url_for('payment_confirm') }}" method="post">
         <input type="hidden" name="reservation_id" value="{{ reservation.id_r }}">
-        <input type="text" name="numer_konta" placeholder="Numer konta">
+        <input type="text" name="numer_konta" placeholder="kod blik">
         <button type="submit">Potwierdź płatność</button>
     </form>
     {% endif %}

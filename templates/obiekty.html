@@ -24,7 +24,7 @@
     <label for="typ_obiektu">Wybierz typ obiektu:</label>
     <select name="typ_obiektu" id="typ_obiektu">
         <option value="dowolny">Dowolny typ obiektu</option>
-        <option value="Orlik">Orilk</option>
+        <option value="Orlik">Orlik</option>
         <option value="Hala sportowa">Hala sportowa</option>
         <option value="Basen">Basen</option>
         <option value="Kort tenisowy">Kort tenisowy</option>
@@ -41,6 +41,8 @@
                     <p>Nazwa: {{ obiekt.nazwa }}</p>
                     <p>Lokalizacja: {{ obiekt.lokalizacja }}</p>
                     <p>Typ: {{ obiekt.typ_obiektu }}</p>
+                    <p>Cena za godzinę: {{ obiekt.cena_1 }} zł</p>
+                    <p>Cena za 2 godziny: {{ obiekt.cena_2 }} zł</p>
                 </div>
             </a>
         {% endif %}

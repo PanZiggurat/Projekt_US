@@ -99,7 +99,11 @@ border: 2px solid black;
 }
 
 .reservations td {
-  background-color: #ffffff;
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+  background-color: white;
+  vertical-align: top; 
 }
 
 .reservations th:first-child,

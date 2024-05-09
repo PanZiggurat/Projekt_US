@@ -153,13 +153,7 @@ def index_page():
     else:
         return redirect(url_for('index'))
 
-def get_next_7_days():
-    dates = []
-    today = datetime.now().date()
-    for i in range(7):
-        date = today + timedelta(days=i)
-        dates.append(date)
-    return dates
+
 
 
 def get_reservations_for_day(date, obiekt_id):
@@ -203,10 +197,6 @@ def get_current_datetime():
 def get_timedelta(days):
     return timedelta(days=days)
 
-def get_reserved_hours(date):
-    reservations = Rezerwacja.query.filter_by(data=date).all()
-    reserved_hours = [reservation.godzina_p for reservation in reservations]
-    return reserved_hours
 
 
 @app.route('/rezerwacja', methods=['GET'])
@@ -226,9 +216,9 @@ def rezerwacja():
                 else:
                     available_hours = list(range(10, 23))
 
-                return render_template('rezerwacja.html', obiekt=obiekt, available_hours=available_hours, obiekt_id=obiekt_id)  # Przekazujesz obiekt_id do szablonu
+                return render_template('rezerwacja.html', obiekt=obiekt, available_hours=available_hours, obiekt_id=obiekt_id) 
             else:
-                return render_template('rezerwacja.html', obiekt=obiekt, obiekt_id=obiekt_id)  # Przekazujesz obiekt_id do szablonu
+                return render_template('rezerwacja.html', obiekt=obiekt, obiekt_id=obiekt_id)  
         else:
             flash('Nie znaleziono obiektu o podanym identyfikatorze.', 'danger')
             return redirect(url_for('index'))
@@ -263,7 +253,7 @@ def make_reservation():
 
         if overlapping_reservation:
             flash('Wybrana godzina jest już zarezerwowana.', 'danger')
-            obiekt = Obiekt.query.get(obiekt_id)  # Pobierz obiekt na podstawie obiekt_id
+            obiekt = Obiekt.query.get(obiekt_id)  
             available_hours = list(range(10, 23))
             return render_template('rezerwacja.html', obiekt=obiekt, available_hours=available_hours)
 
@@ -291,9 +281,9 @@ def remove_expired_reservations():
     today = datetime.now().date()
     expired_reservations = Rezerwacja.query.filter(Rezerwacja.data < today).all()
     for reservation in expired_reservations:
+        print("Usuwanie rezerwacji:", reservation.id_r)  # Poprawione
         db.session.delete(reservation)
     db.session.commit()
-
 
 @app.route('/moje_rezerwacje')
 def moje_rezerwacje():
@@ -308,7 +298,7 @@ def moje_rezerwacje():
         if user_info:
             session['user_info'] = {'imie': user_info.imie, 'nazwisko': user_info.nazwisko, 'email': user_info.email}
 
-        # Przekazujemy reservation nawet jeśli lista jest pusta
+        
         return render_template('MojeRezerwacje.html', rezerwacje=rezerwacje, obiekty=obiekty, reservation=None)  
 
 
@@ -317,15 +307,30 @@ def payment(reservation_id):
     reservation = Rezerwacja.query.get(reservation_id)
     cena = None
     if reservation:
-        obiekt = reservation.obiekt  # Pobranie obiektu powiązanego z rezerwacją
+        obiekt = reservation.obiekt  #
         if obiekt:
             cena = obiekt.cena_1 if reservation.godzina_z.hour - reservation.godzina_p.hour == 1 else obiekt.cena_2
     return render_template('payment.html', cena=cena, reservation=reservation)
 
+@app.route('/cancel_reservation/<int:reservation_id>', methods=['POST'])
+def cancel_reservation(reservation_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    else:
+        reservation = Rezerwacja.query.get(reservation_id)
+        if reservation:
+            db.session.delete(reservation)
+            db.session.commit()
+            flash('Rezerwacja została anulowana pomyślnie.', 'success')
+        else:
+            flash('Nie można znaleźć rezerwacji o podanym identyfikatorze.', 'danger')
+        return redirect(url_for('moje_rezerwacje'))
+    
+
 @app.route('/payment_confirm', methods=['POST'])
 def payment_confirm():
     if request.method == 'POST':
-        print(request.form)  # Print danych przesłanych z formularza
+        print(request.form)  
         reservation_id = request.form['reservation_id']
         numer_konta = request.form['numer_konta']
 
@@ -343,5 +348,6 @@ def payment_confirm():
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        remove_expired_reservations()
     app.run(debug=True)
-    remove_expired_reservations()

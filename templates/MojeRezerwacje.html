@@ -52,6 +52,11 @@
                             <button type="submit">Zapłać</button>
                         </form>
                     {% endif %}
+                    <div style="margin-top: 10px;"></div>
+                    <!-- Dodany przycisk "Odwołaj" -->
+                    <form action="{{ url_for('cancel_reservation', reservation_id=reservation.id_r) }}" method="post">
+                        <button type="submit">Odwołaj</button>
+                    </form>
                 </div>
             {% endfor %}
             </div>
