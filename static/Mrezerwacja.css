@@ -71,7 +71,7 @@ header {
 }
 
 .rezerwacje {
-    overflow: hidden; /* Clear floats */
+    overflow: hidden;
 }
 
 .rezerwacje-container {
@@ -81,7 +81,7 @@ header {
 }
 
 .rezerwacja {
-    width: calc(33.3333% ); /* 33.3333% of parent width minus margin */
+    width: calc(33.3333% ); 
     margin: 10px;
     padding: 20px;
     border: 1px solid black;
@@ -94,7 +94,7 @@ header {
 }
 
 .avatar img {
-    width: 100px; /* Dowolna szerokość obrazka */
+    width: 100px; 
     height: auto;
 }
 .main{
